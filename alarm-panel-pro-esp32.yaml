@@ -17,6 +17,16 @@ substitutions:
   project_name:  fearandloathinginithell.alarm-panel-pro-esp32
   project_version: "0.1.0"
 
+  # Webserver credentials ⬇ #
+  web_username: !secret alarm-panel-pro_web_username
+  web_password: !secret alarm-panel-pro_web_password
+
+  # Update credentials ⬇ #
+  ota_password: !secret alarm-panel-pro_ota_password
+
+  # API credentials ⬇ #
+  api_encryption_key: !secret alarm-panel-pro_api_encryption_key
+  
   # ETHERNET CONFIG
   ethernet_type: LAN8720 # Alarm Panel Pro up to 1.7
 
@@ -179,8 +189,6 @@ switch:
 ####
 # PACKAGES
 # Each package includes the alarm panel feature
-# Remove or comment out any packages that you do not need or want.
-# If you're developing/installing locally, replace the github package line with the local package include above it.
 packages:
 
   ####
@@ -220,6 +228,10 @@ dashboard_import:
 # on the same local network as the device.
 web_server:
   include_internal: true
+  port: 80
+  auth:
+    username: '${web_username}'
+    password: '${web_password}'
 
 #### 
 # LOGGER
@@ -231,9 +243,12 @@ logger:
 # Enables the native API for Home Assistant
 # more: https://esphome.io/components/api.html
 api:
+  encryption:
+    key: '${api_encryption_key}'
 
 #### 
 # OTA UPDATES
 # Enables over-the-air updates
 # more: https://esphome.io/components/ota.html
 ota:
+  password: '${ota_password}'

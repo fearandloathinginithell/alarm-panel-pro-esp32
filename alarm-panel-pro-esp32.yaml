@@ -2,6 +2,12 @@
 ##
 ## Derived from 
 ## GitHub: https://github.com/konnected-io/konnected-esphome
+## https://install.konnected.io/esphome
+####
+
+####
+## Pinouts
+## https://help.konnected.io/support/solutions/articles/32000028978-inputs-and-outputs
 ####
 
 ####
@@ -12,21 +18,21 @@ substitutions:
 
   ####
   # NAME
-  name: alarm-panel-pro
+  name: alarm-panel-pro-0e05d0
   friendly_name: Alarm Panel Pro
   project_name:  fearandloathinginithell.alarm-panel-pro-esp32
   device_description: "Konnected pro ESPHome"
   project_version: "0.1.0"
 
   # Webserver credentials ⬇ #
-  web_username: !secret alarm-panel-pro_web_username
-  web_password: !secret alarm-panel-pro_web_password
+  web_username: !secret alarm-panel-pro-0e05d0_web_username
+  web_password: !secret alarm-panel-pro-0e05d0_web_password
 
   # Update credentials ⬇ #
-  ota_password: !secret alarm-panel-pro_ota_password
+  ota_password: !secret alarm-panel-pro-0e05d0_ota_password
 
   # API credentials ⬇ #
-  api_encryption_key: !secret alarm-panel-pro_api_encryption_key
+  api_encryption_key: !secret alarm-panel-pro-0e05d0_api_encryption_key
   
   # ETHERNET CONFIG
   ethernet_type: LAN8720 # Alarm Panel Pro up to 1.7
@@ -59,7 +65,9 @@ substitutions:
   
   ####
   # CONNECTION MAPPINGS
-  warning_beep_pin: $out1
+  warning_beep_pin: $zone3
+
+
 
 ####
 # INPUT ZONE COMMON SETTINGS
@@ -73,6 +81,10 @@ substitutions:
       - delay: 100ms
       - light.turn_off: blue_status_led
 
+# DS18B20 digital thermometer
+dallas:
+  pin: $zone1
+
 ####
 # BINARY SENSOR SETUP
 # A "Binary Sensor" is any type of sensor that has two states, such as open/closed or detected/not-detected.
@@ -80,112 +92,62 @@ substitutions:
 # block below for each zone.
 binary_sensor:
 
-  - id: zone1
-    name: Zone 1
-    device_class: door
-    pin:
-      number: $zone1
-      mode: INPUT_PULLUP
-    <<: *input_zone_common
-
-  - id: zone2
-    name: Zone 2    
-    device_class: door
-    pin:
-      number: $zone2
-      mode: INPUT_PULLUP
-    <<: *input_zone_common
-
-  - id: zone3
-    name: Zone 3
-    device_class: motion
-    pin:
-      number: $zone3
-      mode: INPUT_PULLUP
-    <<: *input_zone_common
-
-  - id: zone4
-    name: Zone 4
-    device_class: window
-    pin:
-      number: $zone4
-      mode: INPUT_PULLUP
-    <<: *input_zone_common
-
-  - id: zone5
-    name: Zone 5
-    device_class: door
-    pin:
-      number: $zone5
-      mode: INPUT_PULLUP
-    <<: *input_zone_common
-
-  - id: zone6
-    name: Zone 6
-    device_class: window
-    pin:
-      number: $zone6
-      mode: INPUT_PULLUP
-    <<: *input_zone_common
-
-  - id: zone7    
-    name: Zone 7
-    device_class: window
-    pin:
-      number: $zone7
-      mode: INPUT_PULLUP
-    <<: *input_zone_common
-
   - id: zone8
-    name: Zone 8
-    device_class: window
+    name: !secret alarm-panel-pro-0e05d0_zone8_name
+    device_class: !secret alarm-panel-pro-0e05d0_zone8_class
     pin:
       number: $zone8
       mode: INPUT_PULLUP
     <<: *input_zone_common
 
   - id: zone9
-    name: Zone 9
+    name: !secret alarm-panel-pro-0e05d0_zone9_name
+    device_class: !secret alarm-panel-pro-0e05d0_zone9_class
     pin:
       number: $zone9
       mode: INPUT
     <<: *input_zone_common
 
   - id: zone10
-    name: Zone 10
+    name: !secret alarm-panel-pro-0e05d0_zone10_name
+    device_class: !secret alarm-panel-pro-0e05d0_zone10_class
     pin:
       number: $zone10
       mode: INPUT
     <<: *input_zone_common
 
   - id: zone11
-    name: Zone 11
+    name: !secret alarm-panel-pro-0e05d0_zone11_name
+    device_class: !secret alarm-panel-pro-0e05d0_zone11_class
     platform: gpio    
     pin:
       number: $zone11
       mode: INPUT
     <<: *input_zone_common
 
-  - id: zone12
-    name: Zone 12
-    platform: gpio    
-    pin:
-      number: $zone12
-      mode: INPUT
-    <<: *input_zone_common
+
+button:
+  - platform: restart
+    name: "Restart - $name"
+
+# sensor:
+#  - platform: dallas
+#    index: 0
+#    name: "test"
 
 switch:   
   - id: alarm1
-    name: Alarm 1
+    name: Internal Siren
     pin: $alarm1
     platform: gpio
     icon: mdi:bullhorn
 
   - id: alarm2
-    name: Alarm 2
+    name: External Siren
     pin: $alarm2
     platform: gpio
     icon: mdi:bullhorn
+
 
 ####
 # PACKAGES
@@ -201,11 +163,6 @@ packages:
   # ETHERNET
   # Enables ethernet connectivity. Uncomment below to enable ethernet.
   ethernet: github://fearandloathinginithell/alarm-panel-pro-esp32/packages/ethernet.yaml@master
-  
-  ####
-  # WIFI
-  # Enables WiFi connectivity and diagnostics. Uncommet below to enable WiFi.
-  # wifi: github://fearandloathinginithell/alarm-panel-pro-esp32/packages/wifi.yaml@master
 
   ####
   # WARNING BEEP
@@ -225,8 +182,6 @@ dashboard_import:
 
 ####
 # WEB SEVER
-# Enables the built-in web server for viewing the device state, internals and controls via web browser
-# on the same local network as the device.
 web_server:
   include_internal: true
   port: 80
@@ -241,7 +196,6 @@ logger:
 
 ####
 # NATIVE API for HOME ASSISTANT
-# Enables the native API for Home Assistant
 # more: https://esphome.io/components/api.html
 api:
   encryption:
@@ -249,7 +203,6 @@ api:
 
 #### 
 # OTA UPDATES
-# Enables over-the-air updates
 # more: https://esphome.io/components/ota.html
 ota:
   password: '${ota_password}'

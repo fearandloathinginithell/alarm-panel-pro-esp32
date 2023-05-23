@@ -1,23 +1,11 @@
 ####
-##
 ## Derived from 
 ## GitHub: https://github.com/konnected-io/konnected-esphome
 ## https://install.konnected.io/esphome
-####
-
-####
 ## Pinouts
 ## https://help.konnected.io/support/solutions/articles/32000028978-inputs-and-outputs
 ####
-
-####
-# GENERAL SETTINGS
-# Customize these variables to your preferences and needs
-# more: https://esphome.io/guides/configuration-types.html#substitutions
 substitutions:
-
-  ####
-  # NAME
   name: alarm-panel-pro-0e05d0
   friendly_name: Alarm Panel Pro
   project_name:  fearandloathinginithell.alarm-panel-pro-esp32
@@ -35,8 +23,9 @@ substitutions:
   api_encryption_key: !secret alarm-panel-pro-0e05d0_api_encryption_key
   
   # ETHERNET CONFIG
-  ethernet_type: LAN8720 # Alarm Panel Pro up to 1.7
+  # ethernet_type: LAN8720 # Alarm Panel Pro up to 1.7
 
+  status_led_inverted: "false" #<<core-esp32.yaml
   sensor_debounce_time: 200ms
   warning_beep_pulse_time: 100ms
   warning_beep_pause_time: 130ms
@@ -67,9 +56,26 @@ substitutions:
   # CONNECTION MAPPINGS
   warning_beep_pin: $zone3
 
+esphome: #<<core-esp32.yaml
+  name: $name
+  comment: $device_description
+  project:
+    name: $project_name
+    version: $project_version
 
+esp32:  #<<core-esp32.yaml
+  board: wesp32
+  framework:
+    type: arduino
+    version: recommended
 
-####
+ethernet: #<<ethernet.yaml
+  type: LAN8720 # Alarm Panel Pro up to 1.7
+  mdc_pin: GPIO16
+  mdio_pin: GPIO17
+  clk_mode: GPIO0_IN
+  phy_addr: 0
+
 # INPUT ZONE COMMON SETTINGS
 .input_zone_common: &input_zone_common
   platform: gpio   
@@ -85,13 +91,7 @@ substitutions:
 dallas:
   pin: $zone1
 
-####
-# BINARY SENSOR SETUP
-# A "Binary Sensor" is any type of sensor that has two states, such as open/closed or detected/not-detected.
-# Set up zones for door, window, motion, smoke/fire, CO, water/leak sensors in this section by repeating the configuration
-# block below for each zone.
 binary_sensor:
-
   - id: zone8
     name: !secret alarm-panel-pro-0e05d0_zone8_name
     device_class: !secret alarm-panel-pro-0e05d0_zone8_class
@@ -118,17 +118,103 @@ binary_sensor:
 
   - id: zone11
     name: !secret alarm-panel-pro-0e05d0_zone11_name
-    device_class: !secret alarm-panel-pro-0e05d0_zone11_class
-    platform: gpio    
+    device_class: !secret alarm-panel-pro-0e05d0_zone11_class 
     pin:
       number: $zone11
       mode: INPUT
     <<: *input_zone_common
 
+#  - id: zone1
+#    name: !secret alarm-panel-pro-0e05d0_zone1_name
+#    device_class: door
+#    pin:
+#      number: $zone1
+#      mode: INPUT_PULLUP
+#    <<: *input_zone_common
+
+#  - id: zone2
+#    name: Zone 2    
+#    device_class: door
+#    pin:
+#      number: $zone2
+#      mode: INPUT_PULLUP
+#    <<: *input_zone_common
+
+#  - id: zone3
+#    name: Zone 3
+#    device_class: motion
+#    pin:
+#      number: $zone3
+#      mode: INPUT_PULLUP
+#    <<: *input_zone_common
+
+#  - id: zone4
+#    name: Zone 4
+#    device_class: window
+#    pin:
+#      number: $zone4
+#      mode: INPUT_PULLUP
+#    <<: *input_zone_common
+
+#  - id: zone5
+#    name: Zone 5
+#    device_class: door
+#    pin:
+#      number: $zone5
+#      mode: INPUT_PULLUP
+#    <<: *input_zone_common
+
+#  - id: zone6
+#    name: Zone 6
+#    device_class: window
+#    pin:
+#      number: $zone6
+#      mode: INPUT_PULLUP
+#    <<: *input_zone_common
+
+#  - id: zone7    
+#    name: Zone 7
+#    device_class: window
+#    pin:
+#      number: $zone7
+#      mode: INPUT_PULLUP
+#    <<: *input_zone_common
+
+#  - id: zone12
+#    name: Zone 12   
+#    pin:
+#      number: $zone12
+#      mode: INPUT
+#    <<: *input_zone_common
 
 button:
   - platform: restart
     name: "Restart - $name"
+
+light: #<<status-led.yaml
+  - platform: status_led
+    id: blue_status_led
+    pin:
+      number: $status_led
+      inverted: $status_led_inverted
+      
+  - id: warning_beep
+    name: Warning Beep #<<warning-beep.yaml
+    platform: binary
+    output: buzzer_output
+    effects:
+      - strobe:
+          colors:
+            - state: true
+              duration: $warning_beep_pulse_time
+            - state: false
+              duration: $warning_beep_pulse_time
+    internal: $warning_beep_internal_only
+
+output: #<<warning-beep.yaml
+  - id: buzzer_output
+    platform: gpio
+    pin: $warning_beep_pin
 
 # sensor:
 #  - platform: dallas
@@ -148,40 +234,16 @@ switch:
     platform: gpio
     icon: mdi:bullhorn
 
-
-####
-# PACKAGES
-# Each package includes the alarm panel feature
-packages:
-
-  ####
-  # CORE
-  # This package is required and sets up core features.
-  core: github://fearandloathinginithell/alarm-panel-pro-esp32/packages/core-esp32.yaml@master
-
-  ####
-  # ETHERNET
-  # Enables ethernet connectivity. Uncomment below to enable ethernet.
-  ethernet: github://fearandloathinginithell/alarm-panel-pro-esp32/packages/ethernet.yaml@master
-
-  ####
-  # WARNING BEEP
-  # Enables a 'Warning Beep' entity, intended to be used with a piezo buzzer. This is 
-  # implemented using a light entity with strobe effect to create a repeated beeping sound.
-  warning_beep: github://fearandloathinginithell/alarm-panel-pro-esp32/packages/warning-beep.yaml@master
-
-  ####
-  # STATUS LED
-  # Enables the onboard blue status LED as an activity/error indicator
-  status_led: github://fearandloathinginithell/alarm-panel-pro-esp32/packages/status-led.yaml@master
-  
+text_sensor: #<<ethernet.yaml
+  - platform: ethernet_info
+    ip_address:
+      name: $friendly_name Ethernet IP Address
+      entity_category: diagnostic
   
 dashboard_import:
   package_import_url: github://fearandloathinginithell/alarm-panel-pro-esp32/alarm-panel-pro-esp32.yaml@master
   import_full_config: true
 
-####
-# WEB SEVER
 web_server:
   include_internal: true
   port: 80
@@ -189,20 +251,11 @@ web_server:
     username: '${web_username}'
     password: '${web_password}'
 
-#### 
-# LOGGER
-# more: https://esphome.io/components/logger.html
 logger:
 
-####
-# NATIVE API for HOME ASSISTANT
-# more: https://esphome.io/components/api.html
 api:
   encryption:
     key: '${api_encryption_key}'
 
-#### 
-# OTA UPDATES
-# more: https://esphome.io/components/ota.html
 ota:
   password: '${ota_password}'

@@ -22,9 +22,6 @@ substitutions:
   # API credentials ⬇ #
   api_encryption_key: !secret alarm-panel-pro-0e05d0_api_encryption_key
   
-  # ETHERNET CONFIG
-  # ethernet_type: LAN8720 # Alarm Panel Pro up to 1.7
-
   status_led_inverted: "false" #<<core-esp32.yaml
   sensor_debounce_time: 200ms
   warning_beep_pulse_time: 100ms
@@ -92,6 +89,14 @@ dallas:
   pin: $zone1
 
 binary_sensor:
+  - id: zone7    
+    name: !secret alarm-panel-pro-0e05d0_zone7_name
+    device_class: !secret alarm-panel-pro-0e05d0_zone7_class
+    pin:
+      number: $zone7
+      mode: INPUT_PULLUP
+    <<: *input_zone_common
+
   - id: zone8
     name: !secret alarm-panel-pro-0e05d0_zone8_name
     device_class: !secret alarm-panel-pro-0e05d0_zone8_class
@@ -172,20 +177,17 @@ binary_sensor:
 #      mode: INPUT_PULLUP
 #    <<: *input_zone_common
 
-#  - id: zone7    
-#    name: Zone 7
-#    device_class: window
-#    pin:
-#      number: $zone7
-#      mode: INPUT_PULLUP
-#    <<: *input_zone_common
-
 #  - id: zone12
 #    name: Zone 12   
 #    pin:
 #      number: $zone12
 #      mode: INPUT
 #    <<: *input_zone_common
+
+sensor:
+  - platform: dallas
+    address: 0xbe00000e81233328
+    name: "Attic Temperature"
 
 button:
   - platform: restart
